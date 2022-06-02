@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Freyo\\Flysystem\\QcloudCOSv5\\": "src/"
+            "duan617\\Flysystem\\QcloudCOSv5\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Freyo\\Flysystem\\QcloudCOSv5\\Tests\\": "tests"
+            "duan617\\Flysystem\\QcloudCOSv5\\Tests\\": "tests"
         }
     },
     "license": "MIT",
@@ -33,7 +33,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Freyo\\Flysystem\\QcloudCOSv5\\ServiceProvider"
+                "duan617\\Flysystem\\QcloudCOSv5\\ServiceProvider"
             ]
         }
     }
