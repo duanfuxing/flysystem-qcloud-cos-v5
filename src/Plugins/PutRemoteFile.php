@@ -1,6 +1,6 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5\Plugins;
+namespace duan617\Flysystem\QcloudCOSv5\Plugins;
 
 use League\Flysystem\Plugin\AbstractPlugin;
 use League\Flysystem\Util\MimeType;

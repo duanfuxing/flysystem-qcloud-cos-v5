@@ -1,8 +1,8 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5\Plugins;
+namespace duan617\Flysystem\QcloudCOSv5\Plugins;
 
-use Duan617\Flysystem\QcloudCOSv5\Plugins\Traits\TencentCloudAuthV3;
+use duan617\Flysystem\QcloudCOSv5\Plugins\Traits\TencentCloudAuthV3;
 use League\Flysystem\Plugin\AbstractPlugin;
 
 class TCaptchaV3 extends AbstractPlugin

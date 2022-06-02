@@ -1,6 +1,6 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5;
+namespace duan617\Flysystem\QcloudCOSv5;
 
 use Carbon\Carbon;
 use DateTimeInterface;

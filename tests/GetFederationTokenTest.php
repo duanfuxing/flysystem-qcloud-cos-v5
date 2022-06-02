@@ -1,9 +1,9 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5\Tests;
+namespace duan617\Flysystem\QcloudCOSv5\Tests;
 
-use Duan617\Flysystem\QcloudCOSv5\Adapter;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationToken;
+use duan617\Flysystem\QcloudCOSv5\Adapter;
+use duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationToken;
 use League\Flysystem\Filesystem;
 use PHPUnit\Framework\TestCase;
 use Qcloud\Cos\Client;

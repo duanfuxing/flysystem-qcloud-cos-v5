@@ -1,6 +1,6 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5\Plugins\Traits;
+namespace duan617\Flysystem\QcloudCOSv5\Plugins\Traits;
 
 use Carbon\Carbon;
 

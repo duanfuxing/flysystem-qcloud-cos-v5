@@ -1,9 +1,9 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5\Tests;
+namespace duan617\Flysystem\QcloudCOSv5\Tests;
 
 use Carbon\Carbon;
-use Duan617\Flysystem\QcloudCOSv5\Adapter;
+use duan617\Flysystem\QcloudCOSv5\Adapter;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use PHPUnit\Framework\TestCase;

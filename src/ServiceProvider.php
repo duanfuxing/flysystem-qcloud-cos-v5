@@ -1,16 +1,16 @@
 <?php
 
-namespace Duan617\Flysystem\QcloudCOSv5;
+namespace duan617\Flysystem\QcloudCOSv5;
 
-use Duan617\Flysystem\QcloudCOSv5\Plugins\CDN;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\CloudInfinite;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationToken;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationTokenV3;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\GetUrl;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\MediaProcess;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\PutRemoteFile;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\PutRemoteFileAs;
-use Duan617\Flysystem\QcloudCOSv5\Plugins\TCaptcha;
+use duan617\Flysystem\QcloudCOSv5\Plugins\CDN;
+use duan617\Flysystem\QcloudCOSv5\Plugins\CloudInfinite;
+use duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationToken;
+use duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationTokenV3;
+use duan617\Flysystem\QcloudCOSv5\Plugins\GetUrl;
+use duan617\Flysystem\QcloudCOSv5\Plugins\MediaProcess;
+use duan617\Flysystem\QcloudCOSv5\Plugins\PutRemoteFile;
+use duan617\Flysystem\QcloudCOSv5\Plugins\PutRemoteFileAs;
+use duan617\Flysystem\QcloudCOSv5\Plugins\TCaptcha;
 use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
 use Laravel\Lumen\Application as LumenApplication;
 use League\Flysystem\Filesystem;
