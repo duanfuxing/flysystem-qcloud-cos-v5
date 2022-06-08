@@ -4,6 +4,7 @@ namespace duan617\Flysystem\QcloudCOSv5;
 
 use duan617\Flysystem\QcloudCOSv5\Plugins\CDN;
 use duan617\Flysystem\QcloudCOSv5\Plugins\CloudInfinite;
+use duan617\Flysystem\QcloudCOSv5\Plugins\ContentReview;
 use duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationToken;
 use duan617\Flysystem\QcloudCOSv5\Plugins\GetFederationTokenV3;
 use duan617\Flysystem\QcloudCOSv5\Plugins\GetUrl;
@@ -46,6 +47,7 @@ class ServiceProvider extends LaravelServiceProvider
                       $flysystem->addPlugin(new GetFederationTokenV3());
                       $flysystem->addPlugin(new CloudInfinite());
                       $flysystem->addPlugin(new MediaProcess($client,$config));
+                      $flysystem->addPlugin(new ContentReview($client,$config));
 
                       return $flysystem;
                   });
