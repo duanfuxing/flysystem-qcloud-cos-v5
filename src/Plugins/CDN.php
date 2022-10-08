@@ -3,9 +3,34 @@
 namespace duan617\Flysystem\QcloudCOSv5\Plugins;
 
 use League\Flysystem\Plugin\AbstractPlugin;
+use Symfony\Component\Cache\Traits\FilesystemTrait;
+use TencentCloud\Common\Credential;
+use TencentCloud\Common\Profile\ClientProfile;
+use TencentCloud\Common\Profile\HttpProfile;
+use TencentCloud\Common\Exception\TencentCloudSDKException;
+use TencentCloud\Cdn\V20180606\CdnClient;
+use TencentCloud\Cdn\V20180606\Models\PurgeUrlsCacheRequest;
+use TencentCloud\Cdn\V20180606\Models\PushUrlsCacheRequest;
+use TencentCloud\Cdn\V20180606\Models\PurgePathCacheRequest;
+use TencentCloud\Cdn\V20180606\Models\DescribePushTasksRequest;
+use TencentCloud\Cdn\V20180606\Models\DescribePurgeTasksRequest;
+use TencentCloud\Cdn\V20180606\Models\DescribePurgeQuotaRequest;
+use TencentCloud\Cdn\V20180606\Models\DescribePushQuotaRequest;
 
 class CDN extends AbstractPlugin
 {
+
+    use FilesystemTrait;
+
+    public $client;
+    public $config;
+
+    public function __construct($client, $config)
+    {
+        $this->client = $client;
+        $this->config = $config;
+    }
+
     /**
      * Get the method name.
      *
@@ -25,308 +50,211 @@ class CDN extends AbstractPlugin
     }
 
     /**
-     * @param string $url
-     * @param string $key
-     * @param int    $timestamp
-     * @param string $signName
-     * @param string $timeName
-     *
-     * @return string
+     * 刷新URL
+     * @param array $url
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\PurgeUrlsCacheResponse|TencentCloudSDKException
      */
-    public function signature($url, $key = null, $timestamp = null, $signName = 'sign', $timeName = 't')
+    public function refreshUrl(array $url)
     {
-        return $this->signatureD($url, $key, $timestamp, $signName, $timeName);
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
+
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
+
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new PurgeUrlsCacheRequest();
+
+            $params = [
+                'Action'  => 'PurgeUrlsCache',
+                'Version' => '2018-06-06',
+                'Urls'    => $url,
+            ];
+            $req->fromJsonString(json_encode($params));
+            return $client->PurgeUrlsCache($req);
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
     /**
-     * @param string $url
-     * @param string $key
-     * @param int    $timestamp
-     * @param string $random
-     * @param string $signName
-     *
-     * @return string
+     * 预热URL
+     * @param array $url
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\PushUrlsCacheResponse|TencentCloudSDKException
      */
-    public function signatureA($url, $key = null, $timestamp = null, $random = null, $signName = 'sign')
+    public function refreshOverseaUrl(array $url)
     {
-        $key = $key ?: $this->getConfig()->get('cdn_key');
-        $timestamp = $timestamp ?: time();
-        $random = $random ?: sha1(uniqid('', true));
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
 
-        $parsed = parse_url($url);
-        $hash = md5(sprintf('%s-%s-%s-%s-%s', $parsed['path'], $timestamp, $random, 0, $key));
-        $signature = sprintf('%s-%s-%s-%s', $timestamp, $random, 0, $hash);
-        $query = http_build_query([$signName => $signature]);
-        $separator = empty($parsed['query']) ? '?' : '&';
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
 
-        return $url.$separator.$query;
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new PushUrlsCacheRequest();
+
+            $params = [
+                'Action'  => 'PushUrlsCache',
+                'Version' => '2018-06-06',
+                'Urls'    => $url,
+            ];
+            $req->fromJsonString(json_encode($params));
+            return $client->PushUrlsCache($req);
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
     /**
-     * @param string $url
-     * @param string $key
-     * @param int    $timestamp
-     *
-     * @return string
+     * 刷新目录
+     * @param array $dir
+     * @param string $flushType flush：刷新产生更新的资源 delete：刷新全部资源
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\PurgePathCacheResponse|TencentCloudSDKException
      */
-    public function signatureB($url, $key = null, $timestamp = null)
+    public function refreshDir(array $dir, string $flushType = 'delete')
     {
-        $key = $key ?: $this->getConfig()->get('cdn_key');
-        $timestamp = date('YmdHi', $timestamp ?: time());
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
 
-        $parsed = parse_url($url);
-        $hash = md5($key.$timestamp.$parsed['path']);
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
 
-        return sprintf(
-            '%s://%s/%s/%s%s',
-            $parsed['scheme'], $parsed['host'], $timestamp, $hash, $parsed['path']
-        );
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new PurgePathCacheRequest();
+
+            $params = [
+                'Action'    => 'PurgePathCache',
+                'Version'   => '2018-06-06',
+                'Paths'     => $dir,
+                'FlushType' => $flushType,
+            ];
+            $req->fromJsonString(json_encode($params));
+            return $client->PurgePathCache($req);
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
     /**
-     * @param string $url
-     * @param string $key
-     * @param int    $timestamp
-     *
-     * @return string
+     * 查询预热历史
+     * @param array $data
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\DescribePushTasksResponse|TencentCloudSDKException
      */
-    public function signatureC($url, $key = null, $timestamp = null)
+    public function describePushTasks(array $data)
     {
-        $key = $key ?: $this->getConfig()->get('cdn_key');
-        $timestamp = dechex($timestamp ?: time());
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
 
-        $parsed = parse_url($url);
-        $hash = md5($key.$parsed['path'].$timestamp);
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
 
-        return sprintf(
-            '%s://%s/%s/%s%s',
-            $parsed['scheme'], $parsed['host'], $hash, $timestamp, $parsed['path']
-        );
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new DescribePushTasksRequest();
+
+            $req->fromJsonString(json_encode(array_merge($params, $data)));
+            return $client->DescribePushTasks($req);
+
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
     /**
-     * @param string $url
-     * @param string $key
-     * @param int    $timestamp
-     * @param string $signName
-     * @param string $timeName
-     *
-     * @return string
+     * 查询刷新历史
+     * @param array $data
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\DescribePurgeTasksResponse|TencentCloudSDKException
      */
-    public function signatureD($url, $key = null, $timestamp = null, $signName = 'sign', $timeName = 't')
+    public function describePurgeTasks(array $data)
     {
-        $key = $key ?: $this->getConfig()->get('cdn_key');
-        $timestamp = dechex($timestamp ?: time());
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
 
-        $parsed = parse_url($url);
-        $signature = md5($key.$parsed['path'].$timestamp);
-        $query = http_build_query([$signName => $signature, $timeName => $timestamp]);
-        $separator = empty($parsed['query']) ? '?' : '&';
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
 
-        return $url.$separator.$query;
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new DescribePurgeTasksRequest();
+
+            $params = [
+                'Action'  => 'PurgePathCache',
+                'Version' => '2018-06-06',
+            ];
+            $req->fromJsonString(json_encode(array_merge($params, $data)));
+            return $client->DescribePurgeTasks($req);
+
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
     /**
-     * @param $url
-     *
-     * @return array
+     * 查询预热用量
+     * @param array $data
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\DescribePushQuotaResponse|TencentCloudSDKException
      */
-    public function pushUrl($url)
+    public function describePushQuota(array $data)
     {
-        $urls = is_array($url) ? $url : func_get_args();
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
 
-        return $this->request($urls, 'urls', 'CdnUrlPusher');
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
+
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new DescribePushQuotaRequest();
+
+            $params = [
+                'Action'  => 'PurgePathCache',
+                'Version' => '2018-06-06',
+            ];
+            $req->fromJsonString(json_encode(array_merge($params, $data)));
+            return $client->DescribePushQuota($req);
+
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
     /**
-     * @param $url
-     *
-     * @return array
+     * 查询刷新用量
+     * @param array $data
+     * @return \Exception|\TencentCloud\Cdn\V20180606\Models\DescribePurgeQuotaResponse|TencentCloudSDKException
      */
-    public function pushOverseaUrl($url)
+    public function describePurgeQuota(array $data)
     {
-        $urls = is_array($url) ? $url : func_get_args();
+        try {
+            $cred = new Credential($this->config['credentials']['secretId'], $this->config['credentials']['secretKey']);
+            $httpProfile = new HttpProfile();
+            $httpProfile->setEndpoint("cdn.tencentcloudapi.com");
 
-        return $this->request($urls, 'urls', 'CdnOverseaPushser');
+            $clientProfile = new ClientProfile();
+            $clientProfile->setHttpProfile($httpProfile);
+
+            $client = new CdnClient($cred, "", $clientProfile);
+            $req = new DescribePurgeQuotaRequest();
+
+            $params = [
+                'Action'  => 'PurgePathCache',
+                'Version' => '2018-06-06',
+            ];
+            $req->fromJsonString(json_encode(array_merge($params, $data)));
+            return $client->DescribePurgeQuota($req);
+
+        } catch (TencentCloudSDKException $e) {
+            return $e;
+        }
     }
 
-    /**
-     * @param $url
-     *
-     * @return array
-     */
-    public function pushUrlV2($url)
-    {
-        $urls = is_array($url) ? $url : func_get_args();
-
-        return $this->request($urls, 'urls', 'CdnPusherV2');
-    }
-
-    /**
-     * @param $url
-     *
-     * @return array
-     */
-    public function refreshUrl($url)
-    {
-        $urls = is_array($url) ? $url : func_get_args();
-
-        return $this->request($urls, 'urls', 'RefreshCdnUrl');
-    }
-
-    /**
-     * @param $url
-     *
-     * @return array
-     */
-    public function refreshOverseaUrl($url)
-    {
-        $urls = is_array($url) ? $url : func_get_args();
-
-        return $this->request($urls, 'urls', 'RefreshCdnOverSeaUrl');
-    }
-
-    /**
-     * @param $dir
-     *
-     * @return array
-     */
-    public function refreshDir($dir)
-    {
-        $dirs = is_array($dir) ? $dir : func_get_args();
-
-        return $this->request($dirs, 'dirs', 'RefreshCdnDir');
-    }
-
-    /**
-     * @param $dir
-     *
-     * @return array
-     */
-    public function refreshOverseaDir($dir)
-    {
-        $dirs = is_array($dir) ? $dir : func_get_args();
-
-        return $this->request($dirs, 'dirs', 'RefreshCdnOverSeaDir');
-    }
-
-    /**
-     * @param array  $args
-     * @param string $key
-     * @param string $action
-     *
-     * @return array
-     */
-    protected function request(array $args, $key, $action)
-    {
-        $client = $this->getHttpClient();
-
-        $response = $client->post('/v2/index.php', [
-            'form_params' => $this->buildFormParams($args, $key, $action),
-        ]);
-
-        $contents = $response->getBody()->getContents();
-
-        return $this->normalize($contents);
-    }
-
-    /**
-     * @return \GuzzleHttp\Client
-     */
-    protected function getHttpClient()
-    {
-        return new \GuzzleHttp\Client([
-            'base_uri' => 'https://cdn.api.qcloud.com',
-        ]);
-    }
-
-    /**
-     * @param array  $values
-     * @param string $key
-     * @param string $action
-     *
-     * @return array
-     */
-    protected function buildFormParams(array $values, $key, $action)
-    {
-        $keys = array_map(function ($n) use ($key) {
-            return sprintf("{$key}.%d", $n);
-        }, range(0, count($values) - 1));
-
-        $params = array_combine($keys, $values);
-
-        $params = $this->addCommonParams($params, $action);
-
-        return $this->addSignature($params);
-    }
-
-    /**
-     * @param array  $params
-     * @param string $action
-     *
-     * @return array
-     */
-    protected function addCommonParams(array $params, $action)
-    {
-        return array_merge([
-            'Action'    => $action,
-            'SecretId'  => $this->getCredentials()['secretId'],
-            'Timestamp' => time(),
-            'Nonce'     => rand(1, 65535),
-        ], $params);
-    }
-
-    /**
-     * @return array
-     */
-    protected function getCredentials()
-    {
-        return $this->getConfig()->get('credentials');
-    }
-
-    /**
-     * @param array $params
-     *
-     * @return array
-     */
-    protected function addSignature(array $params)
-    {
-        $params['Signature'] = $this->getSignature($params);
-
-        return $params;
-    }
-
-    /**
-     * @param array $params
-     *
-     * @return string
-     */
-    protected function getSignature(array $params)
-    {
-        ksort($params);
-
-        $srcStr = 'POSTcdn.api.qcloud.com/v2/index.php?'.urldecode(http_build_query($params));
-
-        return base64_encode(hash_hmac('sha1', $srcStr, $this->getCredentials()['secretKey'], true));
-    }
-
-    /**
-     * @param string $contents
-     *
-     * @throws \InvalidArgumentException if the JSON cannot be decoded.
-     *
-     * @return array
-     */
-    protected function normalize($contents)
-    {
-        return \GuzzleHttp\json_decode($contents, true);
-    }
-
-    /**
-     * @return \League\Flysystem\Config
-     */
-    protected function getConfig()
-    {
-        return $this->filesystem->getConfig();
-    }
 }

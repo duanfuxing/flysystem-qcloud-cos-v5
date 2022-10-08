@@ -41,7 +41,7 @@ class ServiceProvider extends LaravelServiceProvider
                       $flysystem->addPlugin(new PutRemoteFile());
                       $flysystem->addPlugin(new PutRemoteFileAs());
                       $flysystem->addPlugin(new GetUrl());
-                      $flysystem->addPlugin(new CDN());
+                      $flysystem->addPlugin(new CDN($client,$config));
                       $flysystem->addPlugin(new TCaptcha());
                       $flysystem->addPlugin(new GetFederationToken());
                       $flysystem->addPlugin(new GetFederationTokenV3());
