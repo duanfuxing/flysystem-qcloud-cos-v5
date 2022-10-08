@@ -7,6 +7,7 @@
         "league/flysystem": "~1.0",
         "guzzlehttp/guzzle": "7.*",
         "qcloud/cos-sdk-v5": "2.*",
+        "tencentcloud/cdn": "^3.0",
         "nesbot/carbon": "~1.0 || ^2.0",
         "ext-json": "*"
     },
